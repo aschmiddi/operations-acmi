@@ -88,18 +88,43 @@ def hole_wetterdaten():
         ) from fehler
 
 
+def baue_markdown_tabelle(kopfzeilen, zeilen):
+    """Erzeugt eine Markdown-Tabelle mit auf gleiche Breite ausgerichteten Spalten (Beautify-Regel)."""
+    spaltenbreiten = [
+        max(len(kopfzeilen[i]), *(len(zeile[i]) for zeile in zeilen))
+        for i in range(len(kopfzeilen))
+    ]
+
+    def formatiere_zeile(zellen):
+        return "| " + " | ".join(
+            zelle.ljust(breite) for zelle, breite in zip(zellen, spaltenbreiten)
+        ) + " |"
+
+    trennzeile = "|" + "|".join("-" * (breite + 2) for breite in spaltenbreiten) + "|"
+
+    zeilen_formatiert = [formatiere_zeile(kopfzeilen), trennzeile]
+    zeilen_formatiert += [formatiere_zeile(zeile) for zeile in zeilen]
+    return "\n".join(zeilen_formatiert)
+
+
 def formatiere_bericht(daten):
     """Befüllt die Markdown-Vorlage mit den abgerufenen Wetterdaten."""
     try:
         aktuell = daten["current"]
+        tabelle = baue_markdown_tabelle(
+            ["Kennzahl", "Wert"],
+            [
+                ["Temperatur", f"{de_zahl(aktuell['temperature_2m'])} °C"],
+                ["Gefühlte Temperatur", f"{de_zahl(aktuell['apparent_temperature'])} °C"],
+                ["Windgeschwindigkeit", f"{de_zahl(aktuell['wind_speed_10m'])} km/h"],
+                ["Niederschlag", f"{de_zahl(aktuell['precipitation'])} mm"],
+                ["Wetterlage", wmo_code_zu_text(aktuell["weather_code"])],
+            ],
+        )
         werte = {
             "datum": datetime.now().strftime("%d.%m.%Y"),
             "uhrzeit": datetime.now().strftime("%H:%M Uhr"),
-            "temperatur": f"{de_zahl(aktuell['temperature_2m'])} °C",
-            "gefuehlte_temperatur": f"{de_zahl(aktuell['apparent_temperature'])} °C",
-            "windgeschwindigkeit": f"{de_zahl(aktuell['wind_speed_10m'])} km/h",
-            "niederschlag": f"{de_zahl(aktuell['precipitation'])} mm",
-            "wetterbeschreibung": wmo_code_zu_text(aktuell["weather_code"]),
+            "tabelle": tabelle,
             "erzeugt_am": datetime.now().strftime("%d.%m.%Y %H:%M Uhr"),
         }
     except KeyError as fehler:

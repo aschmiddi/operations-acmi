@@ -5,13 +5,7 @@
 
 ## Aktuelle Wetterlage
 
-| Kennzahl | Wert |
-|---|---|
-| Temperatur | {temperatur} |
-| Gefühlte Temperatur | {gefuehlte_temperatur} |
-| Windgeschwindigkeit | {windgeschwindigkeit} |
-| Niederschlag | {niederschlag} |
-| Wetterlage | {wetterbeschreibung} |
+{tabelle}
 
 ---
 
